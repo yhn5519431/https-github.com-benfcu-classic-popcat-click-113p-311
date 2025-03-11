@@ -1,17 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>POCCAT</title>
-</head>
-<body>
-<img class="title" src="imgs/popcat.svg" alt="popcat">
-<div class="cat-img" id="p">0</div>
-
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
     <title>POPCAT CLASSIC</title>
     <style>
 
@@ -79,7 +68,22 @@
         #op {
             background-image: url("imgs/op.png");
         }
+        #p:hover {
+            cursor: pointer;
+        }
 
+        /* 5. 音效 */
+        @media (hover: none) {
+            #p {
+                background-image: url("imgs/p.png");
+            }
+        }
+
+        @media (hover: hover) {
+            #p {
+                background-image: url("imgs/op.png");
+            }
+        }
     </style>
 
 </head>
@@ -90,5 +94,151 @@
     <div class="cat-img" id="p">0202</div>
 </div>
 
+<script>
+    // 用 javascript 預載張嘴圖片 op.png
+    const img = new Image();
+    img.src = "imgs/op.png";
+
+    // 計數器初始化
+    let count = 0;
+    // 用 id 抓取 文字的 HTML 元素
+    const catImg = document.getElementById("p");
+    //顯示計數器的數字
+    catImg.innerText = count;
+    // 2. 寫一個function 計數器累加
+    function addCount() {
+        count++;
+    }
+    // 註冊滑鼠按下的時候，更新計數器的顯示
+    // 註冊滑鼠按下的事件，呼叫計數器累加 function
+    //當滑鼠按下，切換張嘴圖片
+    // 註冊滑鼠放開的事件，切換張嘴圖片
+    // 當滑鼠按下，播放 pops/pop1.mp3
+    document.addEventListener("mousedown", function() {
+        addCount();
+        catImg.innerText = count;
+        catImg.id = "op";
+        const audio = new Audio("pops/pop1.mp3");
+        audio.play();
+    });
+    document.addEventListener("mouseup", function() {
+        catImg.id = "p";
+    });
+    document.addEventListener("mousedown", function() {
+        catImg.id = "op";
+    });
+    document.addEventListener("mousedown", function() {
+        addCount();
+        // 在 console 下面，用 console.log(count) 去觀察 count 的變化
+        console.log(count);
+        catImg.innerText = count;
+
+        // 滑鼠放開後，再切回閉嘴圖片
+        document.addEventListener("mouseup", function() {
+            catImg.id = "p";
+    });
+
+        // 除了滑鼠，也可以用鍵盤互動
+        // 註冊鍵盤按下的事件，呼叫計數器累加 function
+        // 當鍵盤按下，播放 pops/pop1.mp3
+        document.addEventListener("keydown", function() {
+            addCount();
+            catImg.innerText = count;
+            const audio = new Audio("pops/pop1.mp3");
+            audio.play();
+        });
+        // 滑鼠放開後，等待 25 毫秒，再切回閉嘴圖片
+        document.addEventListener("keyup", function() {
+            setTimeout(function() {
+                catImg.id = "p";
+            }, 25);
+        });
+
+        // 預加載替代的貓咪圖片
+        const preload = new Image();
+        preload.src = "imgs/op.png";
+
+        // 獲取貓咪元素
+        const cat = document.getElementById("p");
+
+        // 點擊音效陣列
+        const pops = [
+            "pops/pop1.mp3",
+            "pops/pop2.mp3",
+            "pops/pop3.mp3",
+            "pops/pop4.mp3"
+        ];
+        let popIndex = 0;
+
+        /**
+         * Cookie 工具函數
+         */
+// 獲取 Cookie
+        function getCookie(cookieName) {
+            const name = cookieName + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+
+            for (let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+
+                // 去除空白字符
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+
+                if (cookie.indexOf(name) === 0) {
+                    return cookie.substring(name.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        // 設置 Cookie
+        function setCookie(cookieName, cookieValue, expirationDays) {
+            const date = new Date();
+            date.setTime(date.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/";
+        }
+
+        // 獲取點擊計數並初始化顯示
+        let popCount = getCookie("pop_count") || 0;
+        cat.innerHTML = popCount > 0 ? popCount : "";
+
+        /**
+         * 貓咪動作函數
+         */
+// 張嘴函數 - 當按下時執行
+        const openMouth = function() {
+            // 更改貓咪圖片 ID 為張嘴狀態
+            cat.id = "op";
+
+            // 播放點擊音效
+            const audio = new Audio(pops[popIndex]);
+            audio.load();
+            audio.play();
+
+            // 更新下一個音效索引
+            popIndex = (popIndex + 1) % pops.length;
+
+            // 增加點擊計數並更新顯示
+            popCount++;
+            cat.innerHTML = popCount;
+            setCookie("pop_count", popCount, 365);
+        };
+
+        // 閉嘴函數 - 當釋放時執行
+        const closeMouth = () => setTimeout(() => cat.id = "p", 25);
+
+        // 事件監聽器
+        document.addEventListener("pointerup", closeMouth);   // 釋放指針時閉嘴
+        document.addEventListener("keyup", closeMouth);       // 釋放按鍵時閉嘴
+        document.addEventListener("pointerdown", openMouth);  // 按下指針時張嘴
+        document.addEventListener("keydown", openMouth);      // 按下按鍵時張嘴
+
+
+
+</script>
 </body>
 </html>
